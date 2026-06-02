@@ -48,15 +48,14 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: DownloadBuildArtifacts@1
-                  inputs:
-                    artifactName: 'frontend-build'
+                - checkout: self
 
                 - task: AzureStaticWebApp@0
                   inputs:
                     azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
                     app_location: 'frontend/react-todo'
                     output_location: 'build'
+                    skip_app_build: true
 
   - stage: DeployProd
     displayName: 'Deploy to Prod Static Web App'
@@ -71,12 +70,11 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: DownloadBuildArtifacts@1
-                  inputs:
-                    artifactName: 'frontend-build'
+                - checkout: self
 
                 - task: AzureStaticWebApp@0
                   inputs:
                     azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
                     app_location: 'frontend/react-todo'
                     output_location: 'build'
+                    skip_app_build: true
