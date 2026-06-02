@@ -1,0 +1,82 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - frontend/**
+
+variables:
+  - group: taskapp-variables
+
+stages:
+  - stage: Build
+    displayName: 'Build Frontend'
+    jobs:
+      - job: BuildJob
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '18.x'
+
+          - script: |
+              cd frontend/react-todo
+              npm ci
+              npm run build
+            displayName: 'Build React App'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: 'frontend/react-todo/build'
+              artifactName: 'frontend-build'
+
+  - stage: DeployDev
+    displayName: 'Deploy to Dev Static Web App'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+    jobs:
+      - deployment: DeployFrontendDev
+        environment: 'development'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    artifactName: 'frontend-build'
+
+                - task: AzureStaticWebApp@0
+                  inputs:
+                    azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
+                    app_location: 'frontend/react-todo'
+                    output_location: 'build'
+
+  - stage: DeployProd
+    displayName: 'Deploy to Prod Static Web App'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployFrontendProd
+        environment: 'production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    artifactName: 'frontend-build'
+
+                - task: AzureStaticWebApp@0
+                  inputs:
+                    azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
+                    app_location: 'frontend/react-todo'
+                    output_location: 'build'
