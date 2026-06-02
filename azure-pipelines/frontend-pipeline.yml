@@ -53,8 +53,8 @@ stages:
                 - task: AzureStaticWebApp@0
                   inputs:
                     azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
-                    app_location: 'frontend/react-todo'
-                    output_location: 'build'
+                    app_location: 'frontend/react-todo/build'
+                    output_location: ''
                     skip_app_build: true
 
   - stage: DeployProd
@@ -75,6 +75,6 @@ stages:
                 - task: AzureStaticWebApp@0
                   inputs:
                     azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
-                    app_location: 'frontend/react-todo'
-                    output_location: 'build'
+                    app_location: 'frontend/react-todo/build'
+                    output_location: ''
                     skip_app_build: true
