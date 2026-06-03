@@ -11,10 +11,10 @@ variables:
   - group: taskapp-variables
 
 stages:
-  - stage: Build
-    displayName: 'Build Frontend'
+  - stage: BuildAndDeploy
+    displayName: 'Build and Deploy Frontend'
     jobs:
-      - job: BuildJob
+      - job: BuildAndDeployJob
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -30,51 +30,10 @@ stages:
               npm run build
             displayName: 'Build React App'
 
-          - task: PublishBuildArtifacts@1
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy to Static Web App'
             inputs:
-              pathToPublish: 'frontend/react-todo/build'
-              artifactName: 'frontend-build'
-
-  - stage: DeployDev
-    displayName: 'Deploy to Dev Static Web App'
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
-    jobs:
-      - deployment: DeployFrontendDev
-        environment: 'development'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-
-                - task: AzureStaticWebApp@0
-                  inputs:
-                    azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
-                    app_location: 'frontend/react-todo/build'
-                    output_location: ''
-                    skip_app_build: true
-
-  - stage: DeployProd
-    displayName: 'Deploy to Prod Static Web App'
-    dependsOn: Build
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-      - deployment: DeployFrontendProd
-        environment: 'production'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: self
-
-                - task: AzureStaticWebApp@0
-                  inputs:
-                    azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
-                    app_location: 'frontend/react-todo/build'
-                    output_location: ''
-                    skip_app_build: true
+              azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
+              app_location: 'frontend/react-todo'
+              output_location: 'build'
+              skip_app_build: true
