@@ -36,4 +36,3 @@ stages:
               azure_static_web_apps_api_token: $(STATIC_WEB_APP_TOKEN)
               app_location: 'frontend/react-todo'
               output_location: 'build'
-              skip_app_build: true
